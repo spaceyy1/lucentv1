@@ -1,0 +1,25 @@
+{
+  "id": "/",
+  "name": "Lucent",
+  "short_name": "Lucent",
+  "description": "A calm, dark browser-style homepage.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#020303",
+  "theme_color": "#090a0a",
+  "icons": [
+    {
+      "src": "/icons/lucent-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/lucent-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

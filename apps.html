@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>apps | catalogue</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: "Segoe UI", sans-serif;
+        background: #080909;
+        color: #eee;
+      }
+
+      * {
+        box-sizing: border-box;
+        -webkit-user-select: none;
+        user-select: none;
+        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M5 3L18.5 12.5L12 13.5L15 21L11.5 22L8.5 15L5 18V3Z" fill="white" opacity="0.95"/><circle cx="5" cy="3" r="1.8" fill="white" opacity="0.95"/></svg>') 0 0, auto;
+      }
+
+      input,
+      textarea {
+        -webkit-user-select: text;
+        user-select: text;
+      }
+
+      ::selection,
+      ::-moz-selection {
+        color: #f4f1e8;
+        background: rgba(137, 119, 83, 0.72);
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        background: #090a0a;
+      }
+
+      main {
+        width: 100%;
+        padding: 16px 20px 36px;
+      }
+
+      .toolbar {
+        width: min(100%, 824px);
+        height: 36px;
+        display: flex;
+        gap: 8px;
+        margin: 0 auto 22px;
+      }
+
+      .back-button {
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        flex: 0 0 auto;
+        padding: 0 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 11px;
+        background: rgba(0, 0, 0, 0.45);
+        color: #aeb2b6;
+        font-size: 12px;
+        text-decoration: none;
+        transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+      }
+
+      .back-button:hover,
+      .back-button:focus-visible {
+        border-color: rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.04);
+        color: #f0f1f2;
+      }
+
+      .search-wrap {
+        position: relative;
+        min-width: 0;
+        flex: 1;
+      }
+
+      .search-wrap::before {
+        content: "";
+        position: absolute;
+        top: 11px;
+        left: 12px;
+        width: 9px;
+        height: 9px;
+        border: 1.5px solid #85898c;
+        border-radius: 50%;
+      }
+
+      .search-wrap::after {
+        content: "";
+        position: absolute;
+        top: 21px;
+        left: 21px;
+        width: 5px;
+        height: 1.5px;
+        transform: rotate(45deg);
+        background: #85898c;
+      }
+
+      .search,
+      .filter {
+        height: 36px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 11px;
+        background: rgba(0, 0, 0, 0.45);
+        color: #e4e5e5;
+        font: inherit;
+        font-size: 12px;
+        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="24" viewBox="0 0 16 24"><path d="M8 2v20M4 2h8M4 22h8" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>') 8 12, text;
+      }
+
+      .search {
+        width: 100%;
+        padding: 0 12px 0 30px;
+        outline: none;
+      }
+
+      .search::placeholder {
+        color: #8e9295;
+      }
+
+      .search:focus,
+      .filter:focus {
+        border-color: rgba(255, 255, 255, 0.24);
+      }
+
+      .filter {
+        width: 110px;
+        padding: 0 12px;
+      }
+
+      .catalogue {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+        gap: 10px;
+      }
+
+      .catalogue-item {
+        min-width: 0;
+        overflow: hidden;
+        aspect-ratio: 1;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 9px;
+        background: #141617;
+      }
+
+      .tile-link {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        color: #74797c;
+        text-decoration: none;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.018), transparent 55%),
+          #151819;
+      }
+
+      .tile-link img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .tile-link:hover {
+        background-color: #1a1e1f;
+      }
+
+      .tile-link span {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1;
+        padding: 12px 8px 8px;
+        overflow: hidden;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.82));
+        color: #f0f1f2;
+        font-size: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 140ms ease;
+      }
+
+      .tile-link:hover span,
+      .tile-link:focus-visible span {
+        opacity: 1;
+      }
+
+      .tile-link.no-cover span {
+        position: relative;
+        right: auto;
+        bottom: auto;
+        left: auto;
+        width: auto;
+        padding: 10px;
+        border: 1px dashed rgba(255, 255, 255, 0.17);
+        border-radius: 10px;
+        background: transparent;
+        color: #858a8d;
+        opacity: 1;
+      }
+
+      @media (max-width: 560px) {
+        main {
+          padding: 14px 12px 28px;
+        }
+
+        .catalogue {
+          grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+          gap: 7px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="toolbar">
+        <a class="back-button" href="/" aria-label="back to home">
+          <span aria-hidden="true">←</span>
+          <span>back</span>
+        </a>
+        <label class="search-wrap">
+          <input class="search" type="search" placeholder="search..." aria-label="search apps">
+        </label>
+        <select class="filter" aria-label="filter apps">
+          <option>all</option>
+        </select>
+      </div>
+
+      <section class="catalogue" aria-label="apps catalogue"></section>
+    </main>
+    <script>
+      // Paste each app's image URL and destination URL into its entry below.
+      const apps = [
+        { name: 'Duck.ai', image: '/reading/assets/ai.jpg', url: 'https://duck.ai' },
+        { name: 'Discord', image: '/reading/assets/discord.png', url: 'https://discord.com' },
+        { name: 'Geforce Now', image: '/reading/assets/geforcenow.png', url: 'https://www.nvidia.com/en-us/geforce-now/' },
+        { name: 'Newgrounds', image: '/reading/assets/newgrounds.png', url: 'https://newgrounds.com' },
+        { name: 'Snapchat', image: '/reading/assets/snap.jpg', url: 'https://www.snapchat.com' },
+        { name: 'Twitch', image: '/reading/assets/twitch.png', url: 'https://www.twitch.tv' },
+        { name: 'Youtube', image: '/reading/assets/youtube.png', url: 'https://www.youtube.com' },
+        { name: 'Pinterest', image: '/reading/assets/pinterest.png', url: 'https://www.pinterest.com' },
+        { name: 'Instagram', image: '/reading/assets/instagram.png', url: 'https://www.instagram.com' },
+        { name: 'Traxmojo', image: '/reading/assets/traxmojo.png', url: 'https://traxmojo.com/' },
+        { name: 'Archive Of Our Own', image: '/reading/assets/ao3.png', url: 'https://archiveofourown.org' },
+        { name: 'Soundcloud', image: '/reading/assets/soundcloud.png', url: 'https://soundcloud.com' },
+        { name: 'Webtoon', image: '/reading/assets/webtoon.png', url: 'https://www.webtoons.com' },
+        { name: 'Movies', image: '/reading/assets/movies.jpg', url: 'https://movy.sx' },
+        { name: 'EXTHang3r', image: '/reading/assets/exthang3r.webp', url: 'https://appdevelepment.github.io/' },
+        { name: 'SH1MMER', image: '/reading/assets/shimmer.webp', url: 'https://sh1mmer.me' },
+        { name: 'Feishin', image: '/reading/assets/feishin.webp', url: 'https://feishin.vercel.app/' },
+      ];
+
+      const catalogue = document.querySelector('.catalogue');
+      const search = document.querySelector('.search');
+
+      document.addEventListener('contextmenu', (event) => event.preventDefault());
+      document.addEventListener('keydown', (event) => {
+        if (
+          event.key === 'F12' ||
+          (event.ctrlKey && event.shiftKey && ['i', 'j', 'c'].includes(event.key.toLowerCase())) ||
+          (event.ctrlKey && event.key.toLowerCase() === 'u')
+        ) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+      }, true);
+
+      document.querySelector('.back-button').addEventListener('click', (event) => {
+        if (window.parent !== window) {
+          event.preventDefault();
+          window.parent.postMessage('lucent:show-home', '*');
+        }
+      });
+
+      for (const app of apps) {
+        const item = document.createElement('article');
+        item.className = 'catalogue-item';
+
+        const tile = app.url ? document.createElement('a') : document.createElement('div');
+        tile.className = 'tile-link';
+        tile.dataset.name = app.name;
+        if (app.url) {
+          tile.href = 'algebra.html?url=' + encodeURIComponent(app.url);
+          tile.setAttribute('aria-label', 'open ' + app.name);
+        } else {
+          tile.setAttribute('aria-label', app.name);
+        }
+
+        const label = document.createElement('span');
+        label.textContent = app.name;
+
+        if (app.image) {
+          const image = document.createElement('img');
+          image.src = app.image;
+          image.alt = app.name;
+          image.addEventListener('error', () => {
+            image.remove();
+            tile.classList.add('no-cover');
+          });
+          tile.appendChild(image);
+        } else {
+          tile.classList.add('no-cover');
+        }
+
+        tile.appendChild(label);
+        item.appendChild(tile);
+        catalogue.appendChild(item);
+      }
+
+      search.addEventListener('input', () => {
+        const query = search.value.trim().toLowerCase();
+        catalogue.querySelectorAll('.catalogue-item').forEach((item) => {
+          const tile = item.querySelector('.tile-link');
+          item.hidden = !tile.dataset.name.toLowerCase().includes(query);
+        });
+      });
+    </script>
+  </body>
+</html>

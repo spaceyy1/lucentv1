@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | Lucent</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: "Segoe UI", sans-serif;
+        background: #080909;
+        color: #eee;
+      }
+
+      * {
+        box-sizing: border-box;
+        -webkit-user-select: none;
+        user-select: none;
+        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M5 3L18.5 12.5L12 13.5L15 21L11.5 22L8.5 15L5 18V3Z" fill="white" opacity="0.95"/><circle cx="5" cy="3" r="1.8" fill="white" opacity="0.95"/></svg>') 0 0, auto;
+      }
+
+      input[type="text"],
+      input[type="search"],
+      input[type="url"],
+      textarea {
+        -webkit-user-select: text;
+        user-select: text;
+        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="24" viewBox="0 0 16 24"><path d="M8 2v20M4 2h8M4 22h8" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>') 8 12, text;
+      }
+
+      body { min-width: 320px; min-height: 100vh; margin: 0; background: #090a0a; }
+
+      button, input, select { font: inherit; }
+
+      main { width: min(920px, 100%); margin: 0 auto; padding: 18px 20px 42px; }
+
+      .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+
+      .back, .action, select, .text-input, .shortcut-key {
+        min-height: 36px;
+        border: 1px solid rgba(255,255,255,.11);
+        border-radius: 9px;
+        background: #111415;
+        color: #e6e8e9;
+      }
+
+      .back, .action { padding: 0 12px; text-decoration: none; }
+      .back { display: inline-flex; align-items: center; gap: 7px; color: #b7bbbe; }
+      .action:hover, .back:hover { border-color: rgba(255,255,255,.25); background: #171a1b; }
+      .toolbar h1 { margin: 0; font-size: 20px; font-weight: 550; }
+      .toolbar .status { margin-left: auto; color: #8e9699; font-size: 12px; }
+
+      .layout { display: grid; grid-template-columns: 178px minmax(0, 1fr); gap: 20px; }
+      .navigation { position: sticky; top: 16px; align-self: start; display: grid; gap: 4px; }
+      .navigation a {
+        padding: 9px 10px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        color: #aeb3b5;
+        font-size: 13px;
+        text-decoration: none;
+      }
+      .navigation a:hover, .navigation a:focus-visible { border-color: rgba(255,255,255,.08); background: #111415; color: #f1f2f2; }
+      .content { min-width: 0; }
+      .section { margin: 0 0 22px; scroll-margin-top: 14px; }
+      .section h2 { margin: 0 0 4px; font-size: 16px; font-weight: 550; }
+      .description { margin: 0 0 12px; color: #909799; font-size: 12px; line-height: 1.5; }
+      .card { overflow: hidden; border: 1px solid rgba(255,255,255,.08); border-radius: 11px; background: #101213; }
+      .setting-row { min-height: 57px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 13px; border-bottom: 1px solid rgba(255,255,255,.055); }
+      .setting-row:last-child { border-bottom: 0; }
+      .setting-copy { min-width: 0; }
+      .setting-title { display: block; color: #e7e9e9; font-size: 13px; }
+      .setting-help { display: block; margin-top: 3px; color: #858d90; font-size: 11px; line-height: 1.4; }
+      .setting-control { flex: 0 0 auto; }
+      select, .text-input { min-width: 165px; padding: 0 10px; font-size: 12px; }
+      .text-input { width: min(250px, 42vw); }
+      .switch { position: relative; display: inline-flex; width: 38px; height: 22px; flex: 0 0 38px; }
+      .switch input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+      .switch-track { width: 38px; height: 22px; border: 1px solid #393f41; border-radius: 99px; background: #24292a; transition: .15s ease; }
+      .switch-track::after { content: ""; position: absolute; top: 4px; left: 4px; width: 12px; height: 12px; border-radius: 50%; background: #a5acad; transition: .15s ease; }
+      .switch input:checked + .switch-track { border-color: #538c62; background: #31643e; }
+      .switch input:checked + .switch-track::after { transform: translateX(16px); background: #e3f3e6; }
+      .switch input:focus-visible + .switch-track { outline: 2px solid #b6d5bd; outline-offset: 2px; }
+      .choice-list { display: flex; flex-wrap: wrap; gap: 8px; padding: 13px; }
+      .choice { position: relative; display: block; }
+      .choice input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+      .choice span { display: block; padding: 8px 10px; border: 1px solid rgba(255,255,255,.1); border-radius: 8px; color: #aeb4b6; font-size: 12px; }
+      .choice input:checked + span { border-color: rgba(132,198,146,.48); background: rgba(74,125,84,.16); color: #e2f0e5; }
+      .choice input:focus-visible + span { outline: 2px solid #b6d5bd; outline-offset: 2px; }
+      .shortcut-row { display: grid; grid-template-columns: minmax(125px, 1fr) minmax(0, 1fr) 120px; align-items: center; gap: 12px; padding: 10px 13px; border-bottom: 1px solid rgba(255,255,255,.055); }
+      .shortcut-row:last-child { border-bottom: 0; }
+      .shortcut-name { font-size: 12px; color: #e7e9e9; }
+      .shortcut-description { color: #858d90; font-size: 11px; }
+      .shortcut-key { min-height: 30px; padding: 0 8px; color: #d9ddde; font-size: 11px; text-align: center; }
+      .shortcut-key:focus { border-color: #74977a; outline: none; }
+      .button-row { display: flex; flex-wrap: wrap; gap: 8px; padding: 13px; }
+      .button-row .action.danger { border-color: rgba(204,91,91,.28); color: #f0b7b7; }
+      .button-row .action.danger:hover { background: rgba(141,44,44,.15); }
+      .notice { margin: 0; padding: 0 13px 13px; color: #8e9699; font-size: 11px; line-height: 1.5; }
+      .preview { padding: 11px 13px; border-top: 1px solid rgba(255,255,255,.055); color: #aeb5b7; font-size: 11px; overflow-wrap: anywhere; }
+      #importFile { display: none; }
+      @media (max-width: 650px) {
+        main { padding: 14px 12px 30px; }
+        .layout { grid-template-columns: 1fr; gap: 10px; }
+        .navigation { position: static; display: flex; overflow-x: auto; }
+        .navigation a { flex: 0 0 auto; }
+        .shortcut-row { grid-template-columns: 1fr auto; gap: 5px 12px; }
+        .shortcut-description { grid-column: 1; }
+        .shortcut-key { grid-column: 2; grid-row: 1 / span 2; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header class="toolbar">
+        <a class="back" href="/" aria-label="back to home"><span aria-hidden="true">←</span><span>back</span></a>
+        <h1>Settings</h1>
+        <span class="status" id="saveStatus" role="status">Saved on this device</span>
+      </header>
+
+      <div class="layout">
+        <nav class="navigation" aria-label="Settings sections">
+          <a href="#appearance">Appearance</a>
+          <a href="#aboutblank">About:blank</a>
+          <a href="#preferences">Preferences</a>
+          <a href="#anime">Anime playback</a>
+          <a href="#shortcuts">Shortcuts</a>
+          <a href="#data">Data</a>
+          <a href="#proxy">Proxy &amp; browsing</a>
+        </nav>
+
+        <div class="content">
+          <section class="section" id="appearance">
+            <h2>Appearance &amp; behavior</h2>
+            <p class="description">Personalize how Lucent looks and responds.</p>
+            <div class="card">
+              <div class="setting-row">
+                <div class="setting-copy"><span class="setting-title">Tab disguise</span><span class="setting-help">Change the tab title and icon to resemble a familiar site.</span></div>
+                <select class="setting-control" data-setting="disguise">
+                  <option value="none">Lucent (default)</option><option value="classroom">Google Classroom</option><option value="drive">Google Drive</option><option value="canvas">Canvas</option><option value="wikipedia">Wikipedia</option>
+                </select>
+              </div>
+              <div class="setting-row">
+                <div class="setting-copy"><span class="setting-title">Exit warning</span><span class="setting-help">Ask before leaving or closing the tab.</span></div>
+                <label class="switch"><input class="setting-control" type="checkbox" data-setting="exitWarning" aria-label="Exit warning"><span class="switch-track"></span></label>
+              </div>
+              <div class="setting-row">
+                <div class="setting-copy"><span class="setting-title">Home (no tabs)</span><span class="setting-help">Hide the vertical tab list in the sidebar.</span></div>
+                <label class="switch"><input class="setting-control" type="checkbox" data-setting="homeNoTabs" aria-label="Home no tabs"><span class="switch-track"></span></label>
+              </div>
+              <div class="setting-row">
+                <div class="setting-copy"><span class="setting-title">Layout</span><span class="setting-help">Choose how the current tab controls are displayed.</span></div>
+                <select class="setting-control" data-setting="layout"><option value="classic">Classic layout</option><option value="horizontal">Horizontal tabs</option><option value="both">Horizontal and vertical tabs</option></select>
+              </div>
+            </div>
+          </section>
+
+          <section class="section" id="aboutblank">
+            <h2>About:blank</h2>
+            <p class="description">Open Lucent in a blank tab. Browsers may block automatic pop-ups, so opening is tied to your click.</p>
+            <div class="card">
+              <div class="setting-row">
+                <div class="setting-copy"><span class="setting-title">Autocloak</span><span class="setting-help">Open a blank-tab copy when enabled. You can also launch it below.</span></div>
+                <label class="switch"><input class="setting-control" type="checkbox" data-setting="autocloak" aria-label="Autocloak"><span class="switch-track"></span></label>
+              </div>
+              <div class="button-row"><button class="action" id="openBlankButton" type="button">Open in about:blank</button><span class="setting-help" id="blankStatus" role="status"></span></div>
+            </div>
+          </section>
+
+          <section class="section" id="preferences">
+            <h2>Opt-in features</h2>
+            <p class="description">Optional homescreen, playback, and performance preferences.</p>
+            <div class="card">
+              <div class="setting-row"><div class="setting-copy"><span class="setting-title">Trending homescreen</span><span class="setting-help">Prefer a trending feed over the default new tab.</span></div><label class="switch"><input class="setting-control" type="checkbox" data-setting="trendingHomescreen" aria-label="Trending homescreen"><span class="switch-track"></span></label></div>
+              <div class="setting-row"><div class="setting-copy"><span class="setting-title">Search edge glow</span><span class="setting-help">Animate a subtle glow around the search bar.</span></div><label class="switch"><input class="setting-control" type="checkbox" data-setting="searchEdgeGlow" aria-label="Search edge glow"><span class="switch-track"></span></label></div>
+              <div class="setting-row"><div class="setting-copy"><span class="setting-title">Perf overlay</span><span class="setting-help">Show estimated FPS and browser memory above the status bar.</span></div><label class="switch"><input class="setting-control" type="checkbox" data-setting="perfOverlay" aria-label="Perf overlay"><span class="switch-track"></span></label></div>
+              <div class="setting-row"><div class="setting-copy"><span class="setting-title">Game focus mode</span><span class="setting-help">Dim surrounding browser UI while a game is open.</span></div><label class="switch"><input class="setting-control" type="checkbox" data-setting="gameFocusMode" aria-label="Game focus mode"><span class="switch-track"></span></label></div>
+              <div class="setting-row"><div class="setting-copy"><span class="setting-title">Quick-relaunch</span><span class="setting-help">Remember the last game and offer to relaunch it on a new tab.</span></div><label class="switch"><input class="setting-control" type="checkbox" data-setting="quickRelaunch" aria-label="Quick-relaunch"><span class="switch-track"></span></label></div>
+              <div class="setting-row"><div class="setting-copy"><span class="setting-title">Recent plays</span><span class="setting-help">Keep a list of recently played items for an activities page.</span></div><label class="switch"><input class="setting-control" type="checkbox" data-setting="recentPlays" aria-label="Recent plays"><span class="switch-track"></span></label></div>
+              <div class="setting-row"><div class="setting-copy"><span class="setting-title">Low-power backdrop</span><span class="setting-help">Use reduced motion and effects for weaker devices.</span></div><label class="switch"><input class="setting-control" type="checkbox" data-setting="lowPowerBackdrop" aria-label="Low-power backdrop"><span class="switch-track"></span></label></div>
+            </div>
+          </section>
+
+          <section class="section" id="anime">
+            <h2>Anime playback</h2>
+            <p class="description">Playback preferences for compatible video sites.</p>
+            <div class="card">
+              <div class="setting-row"><div class="setting-copy"><span class="setting-title">Auto-play next episode</span><span class="setting-help">Start the next episode after a short countdown.</span></div><label class="switch"><input class="setting-control" type="checkbox" data-setting="autoNext" aria-label="Auto-play next episode"><span class="switch-track"></span></label></div>
+              <div class="setting-row"><div class="setting-copy"><span class="setting-title">Auto-skip intro/outro</span><span class="setting-help">Skip known intro and outro markers when supported by the site.</span></div><label class="switch"><input class="setting-control" type="checkbox" data-setting="autoSkipIntroOutro" aria-label="Auto-skip intro/outro"><span class="switch-track"></span></label></div>
+              <div class="setting-row"><div class="setting-copy"><span class="setting-title">Default quality</span><span class="setting-help">Preferred video quality where the player supports it.</span></div><select class="setting-control" data-setting="animeQuality"><option value="auto">Auto</option><option value="1080p">1080p</option><option value="720p">720p</option><option value="360p">360p</option></select></div>
+            </div>
+          </section>
+
+          <section class="section" id="shortcuts">
+            <h2>Shortcuts</h2>
+            <p class="description">Click a shortcut, then press a key. Browser-reserved shortcuts may not be intercepted.</p>
+            <div class="card" id="shortcutList"></div>
+          </section>
+
+          <section class="section" id="data">
+            <h2>Data</h2>
+            <p class="description">Import, export, or reset your local preferences.</p>
+            <div class="card">
+              <div class="setting-row"><div class="setting-copy"><span class="setting-title">Account sync</span><span class="setting-help">Cross-device sync requires an account service, which is not configured for this app.</span></div><button class="action setting-control" type="button" disabled>Sign in unavailable</button></div>
+              <div class="button-row">
+                <button class="action" id="exportButton" type="button">Export data</button>
+                <button class="action" id="importButton" type="button">Import data</button>
+                <input id="importFile" type="file" accept="application/json,.json">
+                <button class="action danger" id="resetButton" type="button">Reset settings</button>
+              </div>
+              <p class="notice">Reset removes Lucent preferences saved by this settings page. It does not erase unrelated site data.</p>
+            </div>
+          </section>
+
+          <section class="section" id="proxy">
+            <h2>Proxy &amp; browsing</h2>
+            <p class="description">Configure search and browser identity preferences.</p>
+            <div class="card">
+              <div class="setting-row"><div class="setting-copy"><span class="setting-title">Proxy connection</span><span class="setting-help">Uses this site’s Wisp connection so proxy traffic stays on the current server.</span></div></div>
+              <div class="setting-row"><div class="setting-copy"><span class="setting-title">Search engine</span><span class="setting-help">Default search provider when searching from the address field.</span></div><select class="setting-control" data-setting="searchEngine"><option value="duckduckgo">DuckDuckGo</option><option value="google">Google</option><option value="bing">Bing</option><option value="brave">Brave Search</option></select></div>
+              <div class="setting-row"><div class="setting-copy"><span class="setting-title">Browser identity</span><span class="setting-help">Anchor keeps the normal identity; Veil selects a synthetic identity.</span></div><select class="setting-control" data-setting="identity"><option value="anchor">Anchor · real, coherent</option><option value="veil">Veil · synthetic, coherent</option></select></div>
+              <div class="setting-row"><div class="setting-copy"><span class="setting-title">Run extensions</span><span class="setting-help">Allow userscripts from the Extensions page when available.</span></div><label class="switch"><input class="setting-control" type="checkbox" data-setting="runExtensions" aria-label="Run extensions"><span class="switch-track"></span></label></div>
+              <div class="setting-row"><div class="setting-copy"><span class="setting-title">Strip tracking params</span><span class="setting-help">Remove common utm_ and click-id URL parameters.</span></div><label class="switch"><input class="setting-control" type="checkbox" data-setting="stripTracking" aria-label="Strip tracking params"><span class="switch-track"></span></label></div>
+              <div class="setting-row"><div class="setting-copy"><span class="setting-title">Prefer HTTPS upgrades</span><span class="setting-help">Try https:// when a URL starts with http://.</span></div><label class="switch"><input class="setting-control" type="checkbox" data-setting="preferHttps" aria-label="Prefer HTTPS upgrades"><span class="switch-track"></span></label></div>
+              <div class="setting-row"><div class="setting-copy"><span class="setting-title">User agent preset</span><span class="setting-help">Presets apply to proxied pages where supported.</span></div><select class="setting-control" data-setting="userAgent"><option value="default">Default · match identity mode</option><option value="chrome-windows">Chrome · Windows</option><option value="chrome-macos">Chrome · macOS</option><option value="safari-macos">Safari · macOS</option><option value="firefox-windows">Firefox · Windows</option><option value="edge-windows">Edge · Windows</option><option value="safari-iphone">Safari · iPhone</option><option value="chrome-android">Chrome · Android</option><option value="chromecast">Smart TV · Chromecast</option><option value="ps5">PlayStation 5</option><option value="xbox">Xbox Series</option><option value="switch">Nintendo Switch</option><option value="googlebot">Crawler · Google</option><option value="custom">Custom string</option></select></div>
+              <div class="setting-row" id="customUserAgentRow" hidden><div class="setting-copy"><span class="setting-title">Custom user agent</span><span class="setting-help">Sent as entered to compatible proxy requests.</span></div><input class="text-input setting-control" type="text" data-setting="customUserAgent" placeholder="Mozilla/5.0 ..."></div>
+              <div class="preview" id="userAgentPreview">Preview · Match identity mode</div>
+              <div class="button-row"><button class="action" id="applyButton" type="button">Apply settings</button></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+    <script>
+      const STORAGE_KEY = 'lucent.settings';
+      const defaults = {
+        disguise: 'none', exitWarning: false, autocloak: false,
+        homeNoTabs: false, layout: 'classic', trendingHomescreen: false, searchEdgeGlow: false,
+        perfOverlay: false, gameFocusMode: false, quickRelaunch: false, recentPlays: false,
+        lowPowerBackdrop: false, autoNext: false, autoSkipIntroOutro: false, animeQuality: 'auto',
+        searchEngine: 'duckduckgo', identity: 'anchor', runExtensions: false,
+        stripTracking: false, preferHttps: false, userAgent: 'default', customUserAgent: '',
+        shortcuts: {
+          newTab: 'Ctrl+T', closeTab: 'Ctrl+W', focusAddress: 'Ctrl+L', history: 'Ctrl+H',
+          extensions: 'Ctrl+Shift+E', bookmarks: 'Ctrl+B', games: 'Ctrl+G',
+          tools: 'Ctrl+Shift+U', inspect: 'Ctrl+Shift+I', zoomIn: 'Ctrl++',
+          zoomOut: 'Ctrl+-', resetZoom: 'Ctrl+0'
+        }
+      };
+      const shortcutDefinitions = [
+        ['newTab', 'New tab', 'Open a blank tab'], ['closeTab', 'Close tab', 'Close the active tab'],
+        ['focusAddress', 'Focus address bar', 'Jump to the URL field'], ['history', 'History', 'Open browsing history'],
+        ['extensions', 'Extensions', 'Open extensions'], ['bookmarks', 'Bookmarks', 'Open bookmarks'],
+        ['games', 'Games', 'Open the library'], ['tools', 'Tools', 'Open developer tools'],
+        ['inspect', 'Inspect', 'Inspect the current page'], ['zoomIn', 'Zoom in', 'Increase page zoom'],
+        ['zoomOut', 'Zoom out', 'Decrease page zoom'], ['resetZoom', 'Reset zoom', 'Reset zoom to 100%']
+      ];
+      const validValues = {
+        disguise: ['none', 'classroom', 'drive', 'canvas', 'wikipedia'],
+        layout: ['classic', 'horizontal', 'both'], animeQuality: ['auto', '1080p', '720p', '360p'],
+        searchEngine: ['duckduckgo', 'google', 'bing', 'brave'],
+        identity: ['anchor', 'veil'],
+        userAgent: ['default', 'chrome-windows', 'chrome-macos', 'safari-macos', 'firefox-windows',
+          'edge-windows', 'safari-iphone', 'chrome-android', 'chromecast', 'ps5', 'xbox', 'switch', 'googlebot', 'custom']
+      };
+      const status = document.getElementById('saveStatus');
+      let settings = loadSettings();
+      document.addEventListener('contextmenu', (event) => {
+        event.preventDefault();
+      });
+      window.addEventListener('keydown', (event) => {
+        if (
+          event.key === 'F12' ||
+          (event.ctrlKey && event.shiftKey && ['i', 'j', 'c'].includes(event.key.toLowerCase())) ||
+          (event.ctrlKey && event.key.toLowerCase() === 'u')
+        ) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+      }, true);
+
+      function sanitizeSettings(candidate) {
+        const safe = { ...defaults, ...candidate };
+        const boolKeys = [
+          'exitWarning', 'autocloak', 'homeNoTabs', 'trendingHomescreen',
+          'searchEdgeGlow', 'perfOverlay', 'gameFocusMode', 'quickRelaunch', 'recentPlays',
+          'lowPowerBackdrop', 'autoNext', 'autoSkipIntroOutro', 'runExtensions', 'stripTracking', 'preferHttps'
+        ];
+        boolKeys.forEach((key) => {
+          if (typeof safe[key] !== 'boolean') safe[key] = defaults[key];
+        });
+        Object.entries(validValues).forEach(([key, values]) => {
+          if (!values.includes(safe[key])) safe[key] = defaults[key];
+        });
+        if (typeof safe.customUserAgent !== 'string') safe.customUserAgent = '';
+        const shortcuts = candidate.shortcuts && typeof candidate.shortcuts === 'object' && !Array.isArray(candidate.shortcuts)
+          ? candidate.shortcuts
+          : {};
+        safe.shortcuts = { ...defaults.shortcuts };
+        Object.keys(safe.shortcuts).forEach((key) => {
+          if (typeof shortcuts[key] === 'string' && shortcuts[key].length < 40) safe.shortcuts[key] = shortcuts[key];
+        });
+        return safe;
+      }
+
+      function loadSettings() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+          if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return { ...defaults, shortcuts: { ...defaults.shortcuts } };
+          return sanitizeSettings(saved);
+        } catch (error) {
+          console.error('Unable to load saved settings.', error);
+          status.textContent = 'Could not load saved preferences';
+          return { ...defaults, shortcuts: { ...defaults.shortcuts } };
+        }
+      }
+
+      function saveSettings() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+          status.textContent = 'Saved on this device';
+          window.parent.postMessage({ type: 'lucent:settings-updated', settings }, '*');
+        } catch (error) {
+          console.error('Unable to save settings.', error);
+          status.textContent = 'Could not save preferences';
+        }
+      }
+
+      function renderControls() {
+        document.querySelectorAll('[data-setting]').forEach((control) => {
+          const key = control.dataset.setting;
+          if (control.type === 'checkbox') control.checked = Boolean(settings[key]);
+          else control.value = settings[key] ?? '';
+        });
+        const shortcuts = document.getElementById('shortcutList');
+        shortcuts.replaceChildren();
+        shortcutDefinitions.forEach(([key, name, description]) => {
+          const row = document.createElement('div');
+          row.className = 'shortcut-row';
+          const title = document.createElement('span');
+          title.className = 'shortcut-name';
+          title.textContent = name;
+          const detail = document.createElement('span');
+          detail.className = 'shortcut-description';
+          detail.textContent = description;
+          const shortcut = document.createElement('button');
+          shortcut.className = 'shortcut-key';
+          shortcut.type = 'button';
+          shortcut.textContent = settings.shortcuts[key];
+          shortcut.setAttribute('aria-label', name + ' shortcut');
+          shortcut.addEventListener('click', () => captureShortcut(shortcut, key));
+          row.append(title, detail, shortcut);
+          shortcuts.appendChild(row);
+        });
+        updateUserAgentPreview();
+      }
+
+      function captureShortcut(button, key) {
+        button.textContent = 'Press keys…';
+        button.focus();
+        const handler = (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          if (['Control', 'Shift', 'Alt', 'Meta'].includes(event.key)) return;
+          const parts = [];
+          if (event.ctrlKey) parts.push('Ctrl');
+          if (event.altKey) parts.push('Alt');
+          if (event.shiftKey) parts.push('Shift');
+          if (event.metaKey) parts.push('Meta');
+          parts.push(event.key.length === 1 ? event.key.toUpperCase() : event.key);
+          settings.shortcuts[key] = parts.join('+');
+          button.textContent = settings.shortcuts[key];
+          window.removeEventListener('keydown', handler, true);
+          saveSettings();
+        };
+        window.addEventListener('keydown', handler, true);
+      }
+
+      function updateUserAgentPreview() {
+        const previewNames = {
+          default: 'Match identity mode',
+          'chrome-windows': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36',
+          'chrome-macos': 'Chrome · macOS', 'safari-macos': 'Safari · macOS',
+          'firefox-windows': 'Firefox · Windows', 'edge-windows': 'Edge · Windows',
+          'safari-iphone': 'Safari · iPhone', 'chrome-android': 'Chrome · Android',
+          chromecast: 'Smart TV · Chromecast', ps5: 'PlayStation 5', xbox: 'Xbox Series',
+          switch: 'Nintendo Switch', googlebot: 'Crawler · Google', custom: settings.customUserAgent || 'Enter a custom user agent'
+        };
+        document.getElementById('userAgentPreview').textContent = 'Preview · ' + previewNames[settings.userAgent];
+        document.getElementById('customUserAgentRow').hidden = settings.userAgent !== 'custom';
+      }
+
+      function openAboutBlank() {
+        const blankWindow = window.open('about:blank', '_blank');
+        if (!blankWindow) {
+          document.getElementById('blankStatus').textContent = 'Pop-up blocked; allow pop-ups and try again.';
+          return;
+        }
+        blankWindow.document.title = ' ';
+        blankWindow.document.body.style.cssText = 'margin:0;overflow:hidden;background:#020303';
+        const frame = blankWindow.document.createElement('iframe');
+        frame.src = new URL('index.html', window.location.href).href;
+        frame.title = 'Lucent';
+        frame.allow = 'autoplay; fullscreen; gamepad; clipboard-read; clipboard-write';
+        frame.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;border:0';
+        blankWindow.document.body.appendChild(frame);
+        document.getElementById('blankStatus').textContent = 'Opened in a new blank tab.';
+      }
+
+      document.querySelectorAll('[data-setting]').forEach((control) => {
+        control.addEventListener('change', () => {
+          const key = control.dataset.setting;
+          const value = control.type === 'checkbox' ? control.checked : control.value;
+          if (validValues[key] && !validValues[key].includes(value)) return;
+          settings[key] = value;
+          if (key === 'userAgent' || key === 'customUserAgent') updateUserAgentPreview();
+          saveSettings();
+          if (key === 'autocloak' && value) openAboutBlank();
+        });
+        if (control.dataset.setting === 'customUserAgent') {
+          control.addEventListener('input', () => {
+            settings.customUserAgent = control.value;
+            updateUserAgentPreview();
+            saveSettings();
+          });
+        }
+      });
+
+      document.querySelector('.back').addEventListener('click', (event) => {
+        if (window.parent !== window) {
+          event.preventDefault();
+          window.parent.postMessage('lucent:show-home', '*');
+        }
+      });
+      document.getElementById('applyButton').addEventListener('click', saveSettings);
+      document.getElementById('openBlankButton').addEventListener('click', openAboutBlank);
+      document.getElementById('exportButton').addEventListener('click', () => {
+        const file = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(file);
+        link.download = 'lucent-settings.json';
+        link.click();
+        window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+      });
+      const importFile = document.getElementById('importFile');
+      document.getElementById('importButton').addEventListener('click', () => importFile.click());
+      importFile.addEventListener('change', async () => {
+        const [file] = importFile.files;
+        if (!file) return;
+        try {
+          const imported = JSON.parse(await file.text());
+          if (!imported || typeof imported !== 'object' || Array.isArray(imported)) {
+            throw new TypeError('The settings file must contain a JSON object.');
+          }
+          settings = sanitizeSettings(imported);
+          renderControls();
+          saveSettings();
+        } catch (error) {
+          console.error('Unable to import settings.', error);
+          status.textContent = 'Import failed: choose a valid settings JSON file';
+        } finally {
+          importFile.value = '';
+        }
+      });
+      document.getElementById('resetButton').addEventListener('click', () => {
+        if (!window.confirm('Reset Lucent preferences saved on this device?')) return;
+        settings = { ...defaults, shortcuts: { ...defaults.shortcuts } };
+        renderControls();
+        saveSettings();
+      });
+
+      renderControls();
+    </script>
+  </body>
+</html>

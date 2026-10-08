@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard | RapidIdentity</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: "Segoe UI", sans-serif;
+        background: #050607;
+        color: #eee;
+      }
+
+      * {
+        box-sizing: border-box;
+        -webkit-user-select: none;
+        user-select: none;
+        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M5 3L18.5 12.5L12 13.5L15 21L11.5 22L8.5 15L5 18V3Z" fill="white" opacity="0.95"/><circle cx="5" cy="3" r="1.8" fill="white" opacity="0.95"/></svg>') 0 0, auto;
+      }
+
+      input,
+      textarea {
+        -webkit-user-select: text;
+        user-select: text;
+      }
+
+      body {
+        width: 100%;
+        height: 100vh;
+        margin: 0;
+        overflow: hidden;
+        background: #050607;
+      }
+
+      .topbar {
+        height: 42px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        background: #0b0d0f;
+      }
+
+      .back {
+        color: #aeb2b6;
+        font-size: 12px;
+        text-decoration: none;
+      }
+
+      .back:hover {
+        color: #fff;
+      }
+
+      .title {
+        flex: 1;
+        overflow: hidden;
+        color: #d7d9db;
+        font-size: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .fullscreen {
+        padding: 5px 9px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 6px;
+        background: transparent;
+        color: #aeb2b6;
+        font: inherit;
+        font-size: 11px;
+      }
+
+      .game-frame {
+        display: block;
+        width: 100%;
+        height: calc(100vh - 42px);
+        border: 0;
+        background: #000;
+      }
+
+      .message {
+        padding: 28px;
+        color: #aaa;
+        font-size: 14px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="back" href="./index.html">← back</a>
+      <span class="title" id="gameTitle">loading game...</span>
+      <button class="fullscreen" id="fullscreenButton" type="button">fullscreen</button>
+    </header>
+    <div id="gameHost">
+      <div class="message" id="status">detecting game...</div>
+    </div>
+    <script src="games.js"></script>
+    <script>
+      document.addEventListener('contextmenu', (event) => event.preventDefault());
+      document.addEventListener('keydown', (event) => {
+        if (
+          event.key === 'F12' ||
+          (event.ctrlKey && event.shiftKey && ['i', 'j', 'c'].includes(event.key.toLowerCase())) ||
+          (event.ctrlKey && event.key.toLowerCase() === 'u')
+        ) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+      }, true);
+
+      const params = new URLSearchParams(window.location.search);
+      const requestedGame =
+        params.get('game') ||
+        params.get('id') ||
+        decodeURIComponent(window.location.hash.slice(1));
+      const games = window.gameCatalogue || [];
+      const game = games.find((entry) => entry.name.toLowerCase() === requestedGame.toLowerCase());
+      const host = document.getElementById('gameHost');
+      const status = document.getElementById('status');
+
+      if (!requestedGame) {
+        status.textContent = 'choose a game from the catalogue.';
+      } else if (!game) {
+        status.textContent = 'no game named "' + requestedGame + '" exists in the catalogue.';
+      } else {
+        const frame = document.createElement('iframe');
+        const gamePath = ['..', 'resources', game.name, ...game.entry.split('/')];
+        frame.className = 'game-frame';
+        frame.title = game.name;
+        frame.allow = 'autoplay; fullscreen; gamepad; clipboard-read; clipboard-write';
+        frame.src = gamePath.map((part) => encodeURIComponent(part)).join('/');
+        frame.addEventListener('load', () => {
+          status.remove();
+        });
+        host.appendChild(frame);
+
+        document.getElementById('fullscreenButton').addEventListener('click', async () => {
+          if (frame.requestFullscreen) {
+            await frame.requestFullscreen();
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

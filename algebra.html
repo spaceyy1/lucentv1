@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Algebra</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, "Segoe UI", Arial, sans-serif;
+        background: #090a0d;
+        color: #f1f1f3;
+      }
+
+      * {
+        box-sizing: border-box;
+        -webkit-user-select: none;
+        user-select: none;
+        cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M5 3L18.5 12.5L12 13.5L15 21L11.5 22L8.5 15L5 18V3Z" fill="white" opacity="0.95"/><circle cx="5" cy="3" r="1.8" fill="white" opacity="0.95"/></svg>') 0 0, auto;
+      }
+
+      input,
+      textarea {
+        -webkit-user-select: text;
+        user-select: text;
+      }
+
+      html,
+      body,
+      #proxyFrame {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
+
+      #proxyFrame {
+        display: none;
+        border: 0;
+      }
+
+      #backButton {
+        position: fixed;
+        z-index: 1;
+        top: 12px;
+        left: 12px;
+        padding: 9px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        background: rgba(16, 17, 20, 0.88);
+        color: #e7e7e9;
+        font: inherit;
+      }
+
+      #backButton:hover {
+        background: #292a30;
+      }
+
+      #status {
+        display: grid;
+        min-height: 100vh;
+        padding: 24px;
+        place-content: center;
+        text-align: center;
+        background:
+          radial-gradient(ellipse at 50% 42%, rgba(133, 139, 166, 0.12), transparent 42%),
+          #090a0d;
+      }
+
+      #status[hidden] {
+        display: none;
+      }
+
+      #statusContent {
+        display: grid;
+        justify-items: center;
+        gap: 15px;
+        width: min(360px, calc(100vw - 40px));
+        padding: 38px 30px;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 20px;
+        background: rgba(18, 19, 24, 0.82);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+      }
+
+      #loaderWrap {
+        position: relative;
+        display: grid;
+        width: 78px;
+        height: 78px;
+        margin-bottom: 4px;
+        place-items: center;
+      }
+
+      #loader {
+        position: absolute;
+        inset: 0;
+        border: 2px solid rgba(255, 255, 255, 0.13);
+        border-top-color: #dedee5;
+        border-radius: 50%;
+        animation: spin 0.85s linear infinite;
+      }
+
+      #lucentLogo {
+        width: 58px;
+        height: 58px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 50%;
+        object-fit: cover;
+      }
+
+      #status h1 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 550;
+      }
+
+      #status p {
+        margin: 0;
+        color: #92939d;
+        font-size: 13px;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+      }
+
+      #status.error #loader {
+        display: none;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #loader {
+          animation-duration: 2.5s;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main id="status" role="status" aria-live="polite">
+      <div id="statusContent">
+        <div id="loaderWrap" aria-hidden="true">
+          <img id="lucentLogo" src="/logo.jpg" alt="">
+          <div id="loader"></div>
+        </div>
+        <h1>Loading your page</h1>
+        <p id="statusMessage">Starting the proxy.</p>
+      </div>
+    </main>
+    <iframe id="proxyFrame" title="Proxied website" allowfullscreen></iframe>
+    <button id="backButton" type="button">← Back</button>
+
+    <script src="/baremux/index.js"></script>
+    <script src="/uv/uv.bundle.js"></script>
+    <script src="/uv/uv.config.js"></script>
+    <script src="/register-sw.js"></script>
+    <script>
+      const status = document.getElementById('status');
+      const statusMessage = document.getElementById('statusMessage');
+      const frame = document.getElementById('proxyFrame');
+
+      document.addEventListener('contextmenu', (event) => event.preventDefault());
+      document.addEventListener('keydown', (event) => {
+        if (
+          event.key === 'F12' ||
+          (event.ctrlKey && event.shiftKey && ['i', 'j', 'c'].includes(event.key.toLowerCase())) ||
+          (event.ctrlKey && event.key.toLowerCase() === 'u')
+        ) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+      }, true);
+
+      document.getElementById('backButton').addEventListener('click', () => {
+        if (history.length > 1) {
+          history.back();
+        } else {
+          location.assign('/');
+        }
+      });
+
+      function showError(message) {
+        status.hidden = false;
+        status.classList.add('error');
+        status.querySelector('h1').textContent = 'Unable to open page';
+        statusMessage.textContent = message;
+      }
+
+      frame.addEventListener('load', () => {
+        const errorHeading = frame.contentDocument?.querySelector('h1')?.textContent.trim();
+        if (errorHeading === 'Error processing your request') {
+          frame.style.display = 'none';
+          showError('Ultraviolet could not load this website. Check the address or proxy connection and try again.');
+        }
+      });
+      frame.addEventListener('error', () => {
+        frame.style.display = 'none';
+        showError('The proxied website could not be loaded. Check the address or proxy connection and try again.');
+      });
+
+      async function loadProxiedPage() {
+        const suppliedUrl = new URLSearchParams(location.search).get('url');
+        if (!suppliedUrl) {
+          showError('No URL specified.');
+          return;
+        }
+
+        let targetUrl;
+        try {
+          targetUrl = new URL(suppliedUrl);
+          if (!['http:', 'https:'].includes(targetUrl.protocol)) {
+            throw new TypeError('Only HTTP and HTTPS addresses can be opened.');
+          }
+        } catch (error) {
+          showError(
+            error instanceof TypeError && error.message.includes('Only HTTP')
+              ? error.message
+              : 'The URL is malformed. Enter a complete address beginning with http:// or https://.'
+          );
+          return;
+        }
+
+        try {
+          if (
+            !window.__uv$config ||
+            typeof window.__uv$config.encodeUrl !== 'function' ||
+            !window.BareMux ||
+            typeof window.registerSW !== 'function'
+          ) {
+            throw new Error('The Ultraviolet client scripts are unavailable.');
+          }
+
+          await window.registerSW();
+          const connection = new window.BareMux.BareMuxConnection('/baremux/worker.js');
+          const wispUrl =
+            (location.protocol === 'https:' ? 'wss' : 'ws') +
+            '://' +
+            location.host +
+            '/wisp/';
+          await connection.setTransport('/epoxy/index.mjs', [{ wisp: wispUrl }]);
+
+          frame.src =
+            window.__uv$config.prefix +
+            window.__uv$config.encodeUrl(targetUrl.toString());
+          frame.style.display = 'block';
+          status.hidden = true;
+        } catch (error) {
+          console.error('Unable to initialize Ultraviolet for the requested page.', error);
+          showError('The proxy could not be started. Check that its routes are available, then reload this page.');
+        }
+      }
+
+      loadProxiedPage();
+    </script>
+  </body>
+</html>
